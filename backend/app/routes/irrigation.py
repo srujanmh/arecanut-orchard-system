@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from app.models.database import get_db, Session
 from app.models.schemas import IrrigationControl, FertigationControl, IrrigationLog

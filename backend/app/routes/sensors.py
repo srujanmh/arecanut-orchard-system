@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import random
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.database import get_db, get_mongo_db, Session
 from app.models.schemas import SensorReadingCreate, Device, Alert

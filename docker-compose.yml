@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # 1. Relational Database (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: agrisense_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: arecanut_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Time-Series Store (InfluxDB)
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: agrisense_influxdb
+    restart: always
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword123
+      - DOCKER_INFLUXDB_INIT_ORG=agrisense
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensor_data
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+
+  # 3. Document Archive (MongoDB)
+  mongodb:
+    image: mongo:6.0
+    container_name: agrisense_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # 4. In-Memory Cache (Redis)
+  redis:
+    image: redis:7.0-alpine
+    container_name: agrisense_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 5. FastAPI Backend
+  backend:
+    build: ./backend
+    container_name: agrisense_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/arecanut_db
+      - MONGODB_URL=mongodb://mongodb:27017
+      - INFLUXDB_URL=http://influxdb:8086
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - influxdb
+      - mongodb
+      - redis
+
+  # 6. Vite Frontend
+  frontend:
+    build: ./frontend
+    container_name: agrisense_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  influxdb_data:
+  mongodb_data:
